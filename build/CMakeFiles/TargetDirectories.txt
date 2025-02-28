@@ -1,0 +1,3 @@
+/home/rami/CProjects/Chip8Emulator/build/CMakeFiles/Chip8.dir
+/home/rami/CProjects/Chip8Emulator/build/CMakeFiles/edit_cache.dir
+/home/rami/CProjects/Chip8Emulator/build/CMakeFiles/rebuild_cache.dir
