@@ -1,6 +1,6 @@
 #include <stdio.h>
 
-// TODO: Research binary file reading to read instructions
+// TODO: Research binary file reading to read instructions (CPAMA: p. 539)
 // TODO: Implement simple OpenGL window
 // TODO: Start working on instruction decoding
 
