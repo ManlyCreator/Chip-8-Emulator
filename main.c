@@ -1,24 +1,54 @@
+// Standard Libraries
 #include <stdio.h>
 #include <stdlib.h>
 
-// TODO: Implement simple OpenGL window
-// TODO: Start working on instruction decoding
-#define Byte char
+// OpenGL Libraries
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
 
-unsigned char memory[4096];
-unsigned char V[16];
+// Chip8
+#include "chip8.h"
+
+// TODO: Implement instruction 0x6000 & onwards
+
+#define WIDTH 800
+#define HEIGHT 600
 
 int main(int argc, char **argv) {
-  Byte *instruction = malloc(sizeof(Byte));
-  FILE *bFile = fopen("../roms/eaty.ch8", "rb");
+  Chip8 chip8 = chipInitialize();
+  GLFWwindow *window;
 
-  if (!bFile) {
-    printf("Could not open file\n");
+  // GLFW
+  glfwInit();
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+  window = glfwCreateWindow(WIDTH, HEIGHT, "Chip8", NULL, NULL);
+
+  if (!window) {
+    printf("Window creation failed\n");
     return -1;
   }
 
-  fread(instruction, sizeof(Byte), 1, bFile);
-  printf("Instruction: %x\n", *instruction);
+  // GLAD
+  if (gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
+    printf("Failed to load GLAD\n");
+    return -1;
+  }
+
+  // Chip8
+  if (!chipLoadROM(&chip8, "../roms/connect4.ch8"))
+    return -1;
+
+  chipEmulateCycle(&chip8);
+
+  // Render Loop
+  while (!glfwWindowShouldClose(window)) {
+    // Poll Events & Swap Buffers
+    glfwPollEvents();
+    glfwSwapBuffers(window);
+  }
 
   return 0;
 }
