@@ -9,10 +9,11 @@
 // Chip8
 #include "chip8.h"
 
-// TODO: Implement instruction 0x6000 & onwards
-
 #define WIDTH 800
 #define HEIGHT 600
+
+// TODO: Debug switch-unreachable warning
+// TODO: Start decoding instructions 0x9000 onwards
 
 int main(int argc, char **argv) {
   Chip8 chip8 = chipInitialize();
