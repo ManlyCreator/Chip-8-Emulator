@@ -12,8 +12,7 @@
 #define WIDTH 800
 #define HEIGHT 600
 
-// TODO: Debug switch-unreachable warning
-// TODO: Start decoding instructions 0x9000 onwards
+// TODO: Implement 0xDxyn, the draw command
 
 int main(int argc, char **argv) {
   Chip8 chip8 = chipInitialize();
@@ -42,6 +41,8 @@ int main(int argc, char **argv) {
   if (!chipLoadROM(&chip8, "../roms/connect4.ch8"))
     return -1;
 
+  chip8.memory[0x200] = 0xC0;
+  chip8.memory[0x201] = 0x0F;
   chipEmulateCycle(&chip8);
 
   // Render Loop

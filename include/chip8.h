@@ -1,14 +1,25 @@
+#define MEMORY 4096
+#define DISPLAY_WIDTH 64
+#define DISPLAY_HEIGHT 32
+
 #define Byte unsigned char
 #define Word unsigned short
 
 typedef struct {
-  Word memory[4098];
+  // Memory
+  Byte *memory;
+  Byte *display;
   Byte V[16];
   Word I;
 
+  // State
   Word pc;
   Word stack[16];
   Byte sp;
+
+  // Timers
+  Byte delayTimer;
+  Byte soundTimer;
 
   Word opcode;
 } Chip8;
