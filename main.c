@@ -14,11 +14,11 @@
 #include "chip8.h"
 #include "shader.h"
 
-#define WIDTH 800
-#define HEIGHT 600
+#define WIDTH 1920
+#define HEIGHT 960
 
-// TODO: Implement point rendering within Chip8 display bounds
-// TODO: Implement 0xDxyn, the draw command
+// TODO: Implement 0xDxyn by writing to the display buffer first
+// TODO: Implement rendering by drawing points relative to display values
 
 int main(int argc, char **argv) {
   Chip8 chip8 = chipInitialize();
@@ -57,12 +57,17 @@ int main(int argc, char **argv) {
   chipEmulateCycle(&chip8);
   
   // OpenGL Data
-  float points[] = { 
-     0.0f, 0.0f
-  };
+  float points[64 * 32]; 
+  for (int i = 0; i < 64 * 32; i += 2) {
+    printf("%d\n", i % 64);
+    points[i] = 30.0f * (int)(i % 64);
+    /*points[i + 1] = 15.0f * (int)((i + 1) / 32);*/
+  }
   GLuint VAO, VBO;
   GLuint shader;
   mat4 projection;
+  glm_mat4_identity(projection);
+  glm_ortho(0.0f, WIDTH, HEIGHT, 0.0f, -1.0f, 1.0f, projection);
 
   // Shader
   if (!shaderConstruct(&shader, "../vertexShader.glsl", "../fragmentShader.glsl"))
@@ -81,14 +86,11 @@ int main(int argc, char **argv) {
 
   // Render Loop
   while (!glfwWindowShouldClose(window)) {
-    glm_mat4_identity(projection);
-    glm_ortho(-5.0f, WIDTH, HEIGHT, -5.0f, -1.0f, 1.0f, projection);
-
     shaderSetMatrix4(shader, "projection", projection);
 
     shaderUse(shader);
     glPointSize(30.0f);
-    glDrawArrays(GL_POINTS, 0, 1);
+    glDrawArrays(GL_POINTS, 0, DISPLAY_WIDTH * DISPLAY_HEIGHT);
     // Poll Events & Swap Buffers
     glfwPollEvents();
     glfwSwapBuffers(window);
