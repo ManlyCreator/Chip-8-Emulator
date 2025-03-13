@@ -10,5 +10,6 @@ add_executable(${PROJECT_NAME} main.c)
 include_directories(include/)
 
 add_library(Chip8 src/chip8.c)
+add_library(Shader src/shader.c)
 
-target_link_libraries(${PROJECT_NAME} glad glfw3 GL m Chip8)
+target_link_libraries(${PROJECT_NAME} glad glfw3 GL m Chip8 Shader)
