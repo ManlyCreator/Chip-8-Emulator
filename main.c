@@ -17,7 +17,7 @@
 #define WIDTH 1920
 #define HEIGHT 960
 
-// TODO: Implement 0xDxyn by writing to the display buffer first
+// TODO: Implement XORing & collision detection in 0xDxyn command
 // TODO: Implement rendering by drawing points relative to display values
 
 int main(int argc, char **argv) {
@@ -52,14 +52,21 @@ int main(int argc, char **argv) {
   if (!chipLoadROM(&chip8, "../roms/spaceInvaders.ch8"))
     return -1;
 
-  chip8.memory[0x200] = 0xC0;
-  chip8.memory[0x201] = 0x0F;
+  chip8.memory[0x000] = 0x3C;
+  chip8.memory[0x001] = 0xC3;
+  chip8.memory[0x002] = 0xFF;
+
+  chip8.memory[0x200] = 0xA0;
+  chip8.memory[0x201] = 0x00;
+  chip8.memory[0x202] = 0xD0;
+  chip8.memory[0x203] = 0x13;
+  chipEmulateCycle(&chip8);
   chipEmulateCycle(&chip8);
   
   // OpenGL Data
   float points[64 * 32]; 
   for (int i = 0; i < 64 * 32; i += 2) {
-    printf("%d\n", i % 64);
+    /*printf("%d\n", i % 64);*/
     points[i] = 30.0f * (int)(i % 64);
     /*points[i + 1] = 15.0f * (int)((i + 1) / 32);*/
   }

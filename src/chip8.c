@@ -195,5 +195,21 @@ void chipEmulateCycle(Chip8 *chip8) {
       chip8->V[x] = (rand() % 256) & (chip8->opcode & 0x00FF);
       printf("Generated random number in V[0x%x]: 0x%.2x\n", x, chip8->V[x]);
       break;
+    // 0xDxyn - Draw a sprite of n-bytes high at (x, y)
+    case 0xD000: {
+      Byte spriteRow;
+      Byte height = chip8->opcode & 0x000F;
+      printf("Drawing:\n");
+      for (int i = 0; i < (chip8->opcode & 0xF); i++) {
+        spriteRow = chip8->memory[chip8->I + i];
+        for (int j = 0; j < 8; j++) {
+          Byte pixel = (spriteRow & (0x1 << j)) >> j;
+          printf("%d", pixel);
+          chip8->display[x + j + ((y + i) * DISPLAY_WIDTH)] = pixel;
+        }
+        printf("\n");
+      }
+      break;
+    }
   }
 }
