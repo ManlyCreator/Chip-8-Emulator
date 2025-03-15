@@ -17,8 +17,7 @@
 #define WIDTH 1920
 #define HEIGHT 960
 
-// TODO: Implement XORing & collision detection in 0xDxyn command
-// TODO: Implement rendering by drawing points relative to display values
+// TODO: Only render pixels that are set to 1 in chip8.display
 
 int main(int argc, char **argv) {
   Chip8 chip8 = chipInitialize();
@@ -64,11 +63,18 @@ int main(int argc, char **argv) {
   chipEmulateCycle(&chip8);
   
   // OpenGL Data
-  float points[64 * 32]; 
-  for (int i = 0; i < 64 * 32; i += 2) {
-    /*printf("%d\n", i % 64);*/
-    points[i] = 30.0f * (int)(i % 64);
-    /*points[i + 1] = 15.0f * (int)((i + 1) / 32);*/
+  unsigned numPoints = DISPLAY_WIDTH * DISPLAY_HEIGHT * 2;
+  float points[numPoints];
+  /* USE THIS LOGIC TO DRAW PIXELS */
+  for (int i = 0; i < numPoints; i += 2) {
+    if (!chip8.display[i / 2]) continue;
+    // TODO: Properly fill the screen with pixels
+    float x =      (((i / 2)) % 64) + (15.0f + (30.0f * (int)((i / 2) % 64)));
+    float y = (int)((i / 2) / 64) + (15.0f + (30.0f * (int)((i / 2) / 64)));
+    printf("x = %.2f\n", x);
+    printf("y = %.2f\n", y);
+    points[i] = x;
+    points[i + 1] = y;
   }
   GLuint VAO, VBO;
   GLuint shader;
@@ -97,7 +103,7 @@ int main(int argc, char **argv) {
 
     shaderUse(shader);
     glPointSize(30.0f);
-    glDrawArrays(GL_POINTS, 0, DISPLAY_WIDTH * DISPLAY_HEIGHT);
+    glDrawArrays(GL_POINTS, 0, (sizeof(points) / sizeof(points[0]) / 2));
     // Poll Events & Swap Buffers
     glfwPollEvents();
     glfwSwapBuffers(window);

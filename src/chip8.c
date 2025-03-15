@@ -200,12 +200,16 @@ void chipEmulateCycle(Chip8 *chip8) {
       Byte spriteRow;
       Byte height = chip8->opcode & 0x000F;
       printf("Drawing:\n");
-      for (int i = 0; i < (chip8->opcode & 0xF); i++) {
+      chip8->V[0xF] = 0;
+      for (int i = 0; i < height; i++) {
         spriteRow = chip8->memory[chip8->I + i];
         for (int j = 0; j < 8; j++) {
+          unsigned index = x + j + ((y + i) * DISPLAY_WIDTH);
           Byte pixel = (spriteRow & (0x1 << j)) >> j;
-          printf("%d", pixel);
-          chip8->display[x + j + ((y + i) * DISPLAY_WIDTH)] = pixel;
+          if (chip8->display[index] == 1)
+            chip8->V[0xF] = 1;
+          chip8->display[index] ^= pixel;
+          printf("%d", chip8->display[index]);
         }
         printf("\n");
       }
