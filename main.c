@@ -17,7 +17,7 @@
 #define WIDTH 1920
 #define HEIGHT 960
 
-// TODO: Only render pixels that are set to 1 in chip8.display
+void framebufferSizeCallback(GLFWwindow *window, int width, int height);
 
 int main(int argc, char **argv) {
   Chip8 chip8 = chipInitialize();
@@ -57,34 +57,37 @@ int main(int argc, char **argv) {
 
   chip8.memory[0x200] = 0xA0;
   chip8.memory[0x201] = 0x00;
-  chip8.memory[0x202] = 0xD0;
-  chip8.memory[0x203] = 0x13;
+  chip8.memory[0x202] = 0xDF;
+  chip8.memory[0x203] = 0xF3;
   chipEmulateCycle(&chip8);
   chipEmulateCycle(&chip8);
   
-  // OpenGL Data
-  unsigned numPoints = DISPLAY_WIDTH * DISPLAY_HEIGHT * 2;
-  float points[numPoints];
-  /* USE THIS LOGIC TO DRAW PIXELS */
-  for (int i = 0; i < numPoints; i += 2) {
-    if (!chip8.display[i / 2]) continue;
-    // TODO: Properly fill the screen with pixels
-    float x =      (((i / 2)) % 64) + (15.0f + (30.0f * (int)((i / 2) % 64)));
-    float y = (int)((i / 2) / 64) + (15.0f + (30.0f * (int)((i / 2) / 64)));
-    printf("x = %.2f\n", x);
-    printf("y = %.2f\n", y);
-    points[i] = x;
-    points[i + 1] = y;
-  }
+  /* OpenGL Data */
+  float plane[] = {
+    // Vertices   // Texture Coordinates
+    -1.0f,  1.0f, 0.0f, 1.0f,
+    -1.0f, -1.0f, 0.0f, 0.0f,
+     1.0f, -1.0f, 1.0f, 0.0f,
+
+    -1.0f,  1.0f, 0.0f, 1.0f,
+     1.0f, -1.0f, 1.0f, 0.0f,
+     1.0f,  1.0f, 1.0f, 1.0f
+  };
   GLuint VAO, VBO;
   GLuint shader;
-  mat4 projection;
-  glm_mat4_identity(projection);
-  glm_ortho(0.0f, WIDTH, HEIGHT, 0.0f, -1.0f, 1.0f, projection);
+  GLuint texture;
 
   // Shader
   if (!shaderConstruct(&shader, "../vertexShader.glsl", "../fragmentShader.glsl"))
     return -1;
+
+  // Texture
+  glGenTextures(1, &texture);
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_2D, texture);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, DISPLAY_WIDTH, DISPLAY_HEIGHT, 0, GL_RED, GL_UNSIGNED_BYTE, chip8.display);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
   // Vertex Array
   glGenVertexArrays(1, &VAO);
@@ -93,21 +96,43 @@ int main(int argc, char **argv) {
   // Vertex Buffer
   glGenBuffers(1, &VBO);
   glBindBuffer(GL_ARRAY_BUFFER, VBO);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(points), points, GL_STATIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(plane), plane, GL_STATIC_DRAW);
   glEnableVertexAttribArray(0);
-  glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(points[0]), (void*)0);
+  glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+  glEnableVertexAttribArray(1);
+  glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+
+  // Callbacks
+  glfwSetFramebufferSizeCallback(window, framebufferSizeCallback);
+
+  for (int i = 0; i < 32; i++) {
+    for (int j = 0; j < 64; j++) {
+      printf("%d", chip8.display[i * 64 + j]);
+    }
+    printf("\n");
+  }
 
   // Render Loop
   while (!glfwWindowShouldClose(window)) {
-    shaderSetMatrix4(shader, "projection", projection);
+    glClear(GL_COLOR_BUFFER_BIT);
+    glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
 
+    // Draw Commands
+    glBindVertexArray(VAO);
     shaderUse(shader);
-    glPointSize(30.0f);
-    glDrawArrays(GL_POINTS, 0, (sizeof(points) / sizeof(points[0]) / 2));
+    shaderSetInt(shader, "texSample", 0);
+    glBindTexture(GL_TEXTURE_2D, texture);
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, DISPLAY_WIDTH, DISPLAY_HEIGHT, GL_RED, GL_UNSIGNED_BYTE, chip8.display);
+    glDrawArrays(GL_TRIANGLES, 0, 6);
+
     // Poll Events & Swap Buffers
     glfwPollEvents();
     glfwSwapBuffers(window);
   }
 
   return 0;
+}
+
+void framebufferSizeCallback(GLFWwindow *window, int width, int height) {
+  glViewport(0, 0, width, height);
 }

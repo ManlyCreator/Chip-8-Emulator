@@ -8,9 +8,13 @@
 typedef struct {
   // Memory
   Byte *memory;
-  Byte *display;
   Byte V[16];
   Word I;
+
+  // Display
+  Byte *display;
+  float *pixels;
+  unsigned numPixels;
 
   // State
   Word pc;

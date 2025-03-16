@@ -8,6 +8,7 @@ Chip8 chipInitialize() {
     .I  = 0,
     .pc = 0x200,
     .sp = 0,
+    .numPixels = 0,
     .delayTimer = 0,
     .soundTimer = 0,
     .opcode = 0
@@ -206,10 +207,14 @@ void chipEmulateCycle(Chip8 *chip8) {
         for (int j = 0; j < 8; j++) {
           unsigned index = x + j + ((y + i) * DISPLAY_WIDTH);
           Byte pixel = (spriteRow & (0x1 << j)) >> j;
-          if (chip8->display[index] == 1)
+          if (chip8->display[index] == 1) {
             chip8->V[0xF] = 1;
+            chip8->numPixels--;
+          }
           chip8->display[index] ^= pixel;
           printf("%d", chip8->display[index]);
+          if (chip8->display[index] == 1)
+            chip8->numPixels++;
         }
         printf("\n");
       }

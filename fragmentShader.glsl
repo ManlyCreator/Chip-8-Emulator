@@ -1,7 +1,11 @@
 #version 330 core
 
-out vec4 col;
+uniform sampler2D texSample;
+
+in vec2 texCoord;
+
+out vec4 fragCol;
 
 void main() {
-  col = vec4(1.0f, 1.0f, 1.0f, 1.0f);
+  fragCol = texture(texSample, texCoord);
 }
