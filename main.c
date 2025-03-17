@@ -1,14 +1,10 @@
 // Standard Libraries
-#include <cglm/cam.h>
-#include <cglm/mat4.h>
-#include <cglm/types.h>
 #include <stdio.h>
 #include <stdlib.h>
 
 // OpenGL Libraries
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-#include <cglm/cglm.h>
 
 // External Libraries
 #include "chip8.h"
@@ -17,6 +13,7 @@
 #define WIDTH 1920
 #define HEIGHT 960
 
+// TODO: Correct vertical flipping of sprites
 // TODO: Load font into memory
 // TODO: Try to render a ROM
 
@@ -57,13 +54,25 @@ int main(int argc, char **argv) {
   /*chip8.memory[0x000] = 0x3C;*/
   /*chip8.memory[0x001] = 0xC3;*/
   /*chip8.memory[0x002] = 0xFF;*/
-  /**/
-  /*chip8.memory[0x200] = 0xA0;*/
-  /*chip8.memory[0x201] = 0x00;*/
-  /*chip8.memory[0x202] = 0xD1;*/
-  /*chip8.memory[0x203] = 0x13;*/
-  /*chipEmulateCycle(&chip8);*/
-  /*chipEmulateCycle(&chip8);*/
+
+  chip8.memory[0x000] = 0x01;
+  chip8.memory[0x001] = 0x03;
+
+  chip8.memory[0x200] = 0xA0;
+  chip8.memory[0x201] = 0x00;
+  chip8.memory[0x202] = 0xD0;
+  chip8.memory[0x203] = 0x02;
+  chipEmulateCycle(&chip8);
+  chipEmulateCycle(&chip8);
+
+  printf("%.8b\n", 0x01);
+  printf("%.8b\n", 0x03);
+  for (int y = 0; y < DISPLAY_HEIGHT; y++) {
+    for (int x = 0; x < DISPLAY_WIDTH; x++) {
+      printf("%d", chip8.display[y * 64 + x]);
+    }
+    printf("\n");
+  }
   
   /* OpenGL Data */
   float plane[] = {
@@ -110,7 +119,10 @@ int main(int argc, char **argv) {
 
   // Render Loop
   while (!glfwWindowShouldClose(window)) {
-    chipEmulateCycle(&chip8);
+    // Emulation Cycle
+    /*chipEmulateCycle(&chip8);*/
+    
+    // Clear Commands
     glClear(GL_COLOR_BUFFER_BIT);
     glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
 
