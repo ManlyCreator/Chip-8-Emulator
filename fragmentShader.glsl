@@ -7,5 +7,6 @@ in vec2 texCoord;
 out vec4 fragCol;
 
 void main() {
-  fragCol = texture(texSample, texCoord);
+  float value = texture(texSample, texCoord).r * 255;
+  fragCol = vec4(value, value, value, 1.0f);
 }

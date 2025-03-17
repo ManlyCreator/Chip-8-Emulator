@@ -17,6 +17,9 @@
 #define WIDTH 1920
 #define HEIGHT 960
 
+// TODO: Load font into memory
+// TODO: Try to render a ROM
+
 void framebufferSizeCallback(GLFWwindow *window, int width, int height);
 
 int main(int argc, char **argv) {
@@ -51,16 +54,16 @@ int main(int argc, char **argv) {
   if (!chipLoadROM(&chip8, "../roms/spaceInvaders.ch8"))
     return -1;
 
-  chip8.memory[0x000] = 0x3C;
-  chip8.memory[0x001] = 0xC3;
-  chip8.memory[0x002] = 0xFF;
-
-  chip8.memory[0x200] = 0xA0;
-  chip8.memory[0x201] = 0x00;
-  chip8.memory[0x202] = 0xDF;
-  chip8.memory[0x203] = 0xF3;
-  chipEmulateCycle(&chip8);
-  chipEmulateCycle(&chip8);
+  /*chip8.memory[0x000] = 0x3C;*/
+  /*chip8.memory[0x001] = 0xC3;*/
+  /*chip8.memory[0x002] = 0xFF;*/
+  /**/
+  /*chip8.memory[0x200] = 0xA0;*/
+  /*chip8.memory[0x201] = 0x00;*/
+  /*chip8.memory[0x202] = 0xD1;*/
+  /*chip8.memory[0x203] = 0x13;*/
+  /*chipEmulateCycle(&chip8);*/
+  /*chipEmulateCycle(&chip8);*/
   
   /* OpenGL Data */
   float plane[] = {
@@ -105,15 +108,9 @@ int main(int argc, char **argv) {
   // Callbacks
   glfwSetFramebufferSizeCallback(window, framebufferSizeCallback);
 
-  for (int i = 0; i < 32; i++) {
-    for (int j = 0; j < 64; j++) {
-      printf("%d", chip8.display[i * 64 + j]);
-    }
-    printf("\n");
-  }
-
   // Render Loop
   while (!glfwWindowShouldClose(window)) {
+    chipEmulateCycle(&chip8);
     glClear(GL_COLOR_BUFFER_BIT);
     glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
 
@@ -122,7 +119,6 @@ int main(int argc, char **argv) {
     shaderUse(shader);
     shaderSetInt(shader, "texSample", 0);
     glBindTexture(GL_TEXTURE_2D, texture);
-    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, DISPLAY_WIDTH, DISPLAY_HEIGHT, GL_RED, GL_UNSIGNED_BYTE, chip8.display);
     glDrawArrays(GL_TRIANGLES, 0, 6);
 
     // Poll Events & Swap Buffers

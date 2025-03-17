@@ -13,8 +13,6 @@ typedef struct {
 
   // Display
   Byte *display;
-  float *pixels;
-  unsigned numPixels;
 
   // State
   Word pc;
