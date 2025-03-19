@@ -1,4 +1,5 @@
 #include "chip8.h"
+#include <cglm/util.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -224,9 +225,8 @@ void chipEmulateCycle(Chip8 *chip8) {
       for (int i = 0; i < height; i++) {
         spriteRow = chip8->memory[chip8->I + i];
         for (int j = 0; j < 8; j++) {
-          /*unsigned index = x + j + ((DISPLAY_HEIGHT - 1 - (y + i)) * DISPLAY_WIDTH);*/
-          unsigned index = x + j + ((y + i) * DISPLAY_WIDTH);
-          Byte pixel = (spriteRow & (0x1 << j)) >> j;
+          unsigned index = x + j + ((DISPLAY_HEIGHT - 1 - (y + i)) * DISPLAY_WIDTH);
+          Byte pixel = (spriteRow & (0x80 >> j));
           if (chip8->display[index] == 1)
             chip8->V[0xF] = 1;
           chip8->display[index] ^= pixel;

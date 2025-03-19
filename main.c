@@ -13,9 +13,7 @@
 #define WIDTH 1920
 #define HEIGHT 960
 
-// TODO: Correct vertical flipping of sprites
-// TODO: Load font into memory
-// TODO: Try to render a ROM
+// TODO: Debug spaceInvaders output to identify the reason why nothing is rendered
 
 void framebufferSizeCallback(GLFWwindow *window, int width, int height);
 
@@ -51,28 +49,20 @@ int main(int argc, char **argv) {
   if (!chipLoadROM(&chip8, "../roms/spaceInvaders.ch8"))
     return -1;
 
-  /*chip8.memory[0x000] = 0x3C;*/
-  /*chip8.memory[0x001] = 0xC3;*/
-  /*chip8.memory[0x002] = 0xFF;*/
+  /*chip8.memory[0x200] = 0xA0;*/
+  /*chip8.memory[0x201] = 0x4B;*/
+  /*chip8.memory[0x202] = 0xDF;*/
+  /*chip8.memory[0x203] = 0xF5;*/
+  /*chipEmulateCycle(&chip8);*/
+  /*chipEmulateCycle(&chip8);*/
 
-  chip8.memory[0x000] = 0x01;
-  chip8.memory[0x001] = 0x03;
-
-  chip8.memory[0x200] = 0xA0;
-  chip8.memory[0x201] = 0x00;
-  chip8.memory[0x202] = 0xD0;
-  chip8.memory[0x203] = 0x02;
-  chipEmulateCycle(&chip8);
-  chipEmulateCycle(&chip8);
-
-  printf("%.8b\n", 0x01);
-  printf("%.8b\n", 0x03);
-  for (int y = 0; y < DISPLAY_HEIGHT; y++) {
-    for (int x = 0; x < DISPLAY_WIDTH; x++) {
-      printf("%d", chip8.display[y * 64 + x]);
-    }
-    printf("\n");
-  }
+  // Display Debugger
+  /*for (int y = 0; y < DISPLAY_HEIGHT; y++) {*/
+  /*  for (int x = 0; x < DISPLAY_WIDTH; x++) {*/
+  /*    printf("%d", chip8.display[y * 64 + x]);*/
+  /*  }*/
+  /*  printf("\n");*/
+  /*}*/
   
   /* OpenGL Data */
   float plane[] = {
@@ -120,7 +110,7 @@ int main(int argc, char **argv) {
   // Render Loop
   while (!glfwWindowShouldClose(window)) {
     // Emulation Cycle
-    /*chipEmulateCycle(&chip8);*/
+    chipEmulateCycle(&chip8);
     
     // Clear Commands
     glClear(GL_COLOR_BUFFER_BIT);
