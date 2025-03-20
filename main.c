@@ -13,7 +13,8 @@
 #define WIDTH 1920
 #define HEIGHT 960
 
-// TODO: Debug spaceInvaders output to identify the reason why nothing is rendered
+// TODO: Render Chip8 Logo
+// TODO: Render Space Invaders start screen, may need to implement remaining instructions first
 
 void framebufferSizeCallback(GLFWwindow *window, int width, int height);
 
@@ -46,7 +47,7 @@ int main(int argc, char **argv) {
   glViewport(0, 0, WIDTH, HEIGHT);
 
   // Chip8
-  if (!chipLoadROM(&chip8, "../roms/spaceInvaders.ch8"))
+  if (!chipLoadROM(&chip8, "../roms/IBM_Logo.ch8"))
     return -1;
 
   /*chip8.memory[0x200] = 0xA0;*/
@@ -56,13 +57,6 @@ int main(int argc, char **argv) {
   /*chipEmulateCycle(&chip8);*/
   /*chipEmulateCycle(&chip8);*/
 
-  // Display Debugger
-  /*for (int y = 0; y < DISPLAY_HEIGHT; y++) {*/
-  /*  for (int x = 0; x < DISPLAY_WIDTH; x++) {*/
-  /*    printf("%d", chip8.display[y * 64 + x]);*/
-  /*  }*/
-  /*  printf("\n");*/
-  /*}*/
   
   /* OpenGL Data */
   float plane[] = {
@@ -107,10 +101,19 @@ int main(int argc, char **argv) {
   // Callbacks
   glfwSetFramebufferSizeCallback(window, framebufferSizeCallback);
 
+  chipEmulateCycle(&chip8);
   // Render Loop
   while (!glfwWindowShouldClose(window)) {
     // Emulation Cycle
     chipEmulateCycle(&chip8);
+
+    // Display Debugger
+    /*for (int y = 0; y < DISPLAY_HEIGHT; y++) {*/
+    /*  for (int x = 0; x < DISPLAY_WIDTH; x++) {*/
+    /*    printf("%d", chip8.display[y * 64 + x]);*/
+    /*  }*/
+    /*  printf("\n");*/
+    /*}*/
     
     // Clear Commands
     glClear(GL_COLOR_BUFFER_BIT);
@@ -121,6 +124,7 @@ int main(int argc, char **argv) {
     shaderUse(shader);
     shaderSetInt(shader, "texSample", 0);
     glBindTexture(GL_TEXTURE_2D, texture);
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, DISPLAY_WIDTH, DISPLAY_HEIGHT, GL_RED, GL_UNSIGNED_BYTE, chip8.display);
     glDrawArrays(GL_TRIANGLES, 0, 6);
 
     // Poll Events & Swap Buffers

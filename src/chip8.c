@@ -68,7 +68,7 @@ void chipEmulateCycle(Chip8 *chip8) {
   Byte x, y;
 
   chip8->opcode = (chip8->memory[chip8->pc] << 8) | chip8->memory[chip8->pc + 1];
-  printf("Reading addresses 0x%.3x and 0x%.3x\n", chip8->pc, chip8->pc + 1);
+  printf("Reading memory[0x%.3x] = 0x%.2x and memory[0x%.3x] = 0x%.2x\n", chip8->pc, chip8->memory[chip8->pc], chip8->pc + 1, chip8->memory[chip8->pc + 1]);
   printf("Opcode: 0x%.4x\n", chip8->opcode);
 
   // Decodes registers from the opcode
@@ -84,6 +84,7 @@ void chipEmulateCycle(Chip8 *chip8) {
           printf("Clearing Display\n");
           free(chip8->display);
           chip8->display = calloc(DISPLAY_WIDTH * DISPLAY_HEIGHT, sizeof(Byte));
+          chip8->pc += 2;
           break;
         // 0x00EE - Return
         case 0x00EE:
@@ -95,6 +96,7 @@ void chipEmulateCycle(Chip8 *chip8) {
     // 0x1nnn - Jump to address nnn
     case 0x1000:
       chip8->pc = chip8->opcode & 0x0FFF;
+      printf("Setting PC to: %d\n", chip8->pc);
       break;
     // 0x2nnn - Call function at nnn
     case 0x2000:
@@ -106,25 +108,33 @@ void chipEmulateCycle(Chip8 *chip8) {
     case 0x3000:
       if (chip8->V[x] == (chip8->opcode & 0x00FF))
         chip8->pc += 4;
+      else
+        chip8->pc += 2;
       break;
     // 0x4xbb - Skip next instruction if V[x] != bb
     case 0x4000:
       if (chip8->V[x] != (chip8->opcode & 0x00FF))
         chip8->pc += 4;
+      else
+        chip8->pc += 2;
       break;
     // 0x5xy0 - Skip next instruction if V[x] == V[y]
     case 0x5000:
       if (chip8->V[x] == chip8->V[y])
         chip8->pc += 4;
+      else
+        chip8->pc += 2;
       break;
     // 0x6xbb - Load bb into V[x]
     case 0x6000:
       chip8->V[x] = chip8->opcode & 0x00FF;
+      printf("Loaded %d into V[0x%x]\n", chip8->V[x], x);
       chip8->pc += 2;
       break;
     // 0x7xbb - Increment V[x] by bb
     case 0x7000:
-      chip8->V[(chip8->opcode & 0x0F00) >> 8] += chip8->opcode & 0x00FF;
+      printf("Incrementing V[%d] by %d\n", x, chip8->opcode & 0x00FF);
+      chip8->V[x] += chip8->opcode & 0x00FF;
       chip8->pc += 2;
       break;
     case 0x8000:
@@ -200,10 +210,14 @@ void chipEmulateCycle(Chip8 *chip8) {
     case 0x9000:
       if (chip8->V[x] != chip8->V[y])
         chip8->pc += 4;
+      else
+        chip8->pc += 2;
       break;
     // 0xAnnn - Load nnn into I
     case 0xA000:
       chip8->I = chip8->opcode & 0x0FFF;
+      printf("Loaded %d into I\n", chip8->I);
+      printf("memory[I] = 0x%.2x\n", chip8->memory[chip8->I]);
       chip8->pc += 2;
       break;
     // 0xBnnn - Jump to address nnn + V[0]
@@ -216,22 +230,32 @@ void chipEmulateCycle(Chip8 *chip8) {
       srand(time(NULL));
       chip8->V[x] = (rand() % 256) & (chip8->opcode & 0x00FF);
       printf("Generated random number in V[0x%x]: 0x%.2x\n", x, chip8->V[x]);
+      chip8->pc += 2;
       break;
     // 0xDxyn - Draw a sprite of n-bytes high at (x, y)
     case 0xD000: {
+      printf("Drawing:\n");
       Byte spriteRow;
       Byte height = chip8->opcode & 0x000F;
       chip8->V[0xF] = 0;
       for (int i = 0; i < height; i++) {
         spriteRow = chip8->memory[chip8->I + i];
         for (int j = 0; j < 8; j++) {
-          unsigned index = x + j + ((DISPLAY_HEIGHT - 1 - (y + i)) * DISPLAY_WIDTH);
-          Byte pixel = (spriteRow & (0x80 >> j));
+          unsigned index = chip8->V[x] + j + ((DISPLAY_HEIGHT - 1 - (chip8->V[y] + i)) * DISPLAY_WIDTH);
+          Byte pixel = (spriteRow & (0x80 >> j)) > 0 ? 1 : 0;
+          printf("%d", pixel);
           if (chip8->display[index] == 1)
             chip8->V[0xF] = 1;
           chip8->display[index] ^= pixel;
         }
+        printf("\n");
       }
+      chip8->pc += 2;
+      break;
+    // TODO:
+    case 0xF000:
+      printf("INSTRUCTION NOT IMPLEMENTED\n");
+      chip8->pc += 2;
       break;
     }
   }
