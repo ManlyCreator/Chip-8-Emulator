@@ -13,8 +13,9 @@
 #define WIDTH 1920
 #define HEIGHT 960
 
-// TODO: Render Chip8 Logo
-// TODO: Render Space Invaders start screen, may need to implement remaining instructions first
+// TODO: Implement input instructions (instructions with TODO)
+// TODO: Timers
+// TODO: Sound
 
 void framebufferSizeCallback(GLFWwindow *window, int width, int height);
 
@@ -49,14 +50,6 @@ int main(int argc, char **argv) {
   // Chip8
   if (!chipLoadROM(&chip8, "../roms/IBM_Logo.ch8"))
     return -1;
-
-  /*chip8.memory[0x200] = 0xA0;*/
-  /*chip8.memory[0x201] = 0x4B;*/
-  /*chip8.memory[0x202] = 0xDF;*/
-  /*chip8.memory[0x203] = 0xF5;*/
-  /*chipEmulateCycle(&chip8);*/
-  /*chipEmulateCycle(&chip8);*/
-
   
   /* OpenGL Data */
   float plane[] = {
@@ -101,7 +94,15 @@ int main(int argc, char **argv) {
   // Callbacks
   glfwSetFramebufferSizeCallback(window, framebufferSizeCallback);
 
-  chipEmulateCycle(&chip8);
+  /*chip8.memory[0x200] = 0x60;*/
+  /*chip8.memory[0x201] = 0xFF;*/
+  /**/
+  /*chip8.memory[0x202] = 0xF0;*/
+  /*chip8.memory[0x203] = 0x33;*/
+  /**/
+  /*chipEmulateCycle(&chip8);*/
+  /*chipEmulateCycle(&chip8);*/
+
   // Render Loop
   while (!glfwWindowShouldClose(window)) {
     // Emulation Cycle

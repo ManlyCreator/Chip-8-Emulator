@@ -107,23 +107,20 @@ void chipEmulateCycle(Chip8 *chip8) {
     // 0x3xbb - Skip next instruction if V[x] == bb
     case 0x3000:
       if (chip8->V[x] == (chip8->opcode & 0x00FF))
-        chip8->pc += 4;
-      else
         chip8->pc += 2;
+      chip8->pc += 2;
       break;
     // 0x4xbb - Skip next instruction if V[x] != bb
     case 0x4000:
       if (chip8->V[x] != (chip8->opcode & 0x00FF))
-        chip8->pc += 4;
-      else
         chip8->pc += 2;
+      chip8->pc += 2;
       break;
     // 0x5xy0 - Skip next instruction if V[x] == V[y]
     case 0x5000:
       if (chip8->V[x] == chip8->V[y])
-        chip8->pc += 4;
-      else
         chip8->pc += 2;
+      chip8->pc += 2;
       break;
     // 0x6xbb - Load bb into V[x]
     case 0x6000:
@@ -209,9 +206,8 @@ void chipEmulateCycle(Chip8 *chip8) {
     // 0x9xy0 - Skip next instruction if V[x] != V[y]
     case 0x9000:
       if (chip8->V[x] != chip8->V[y])
-        chip8->pc += 4;
-      else
         chip8->pc += 2;
+      chip8->pc += 2;
       break;
     // 0xAnnn - Load nnn into I
     case 0xA000:
@@ -232,7 +228,7 @@ void chipEmulateCycle(Chip8 *chip8) {
       printf("Generated random number in V[0x%x]: 0x%.2x\n", x, chip8->V[x]);
       chip8->pc += 2;
       break;
-    // 0xDxyn - Draw a sprite of n-bytes high at (x, y)
+    // 0xDxyn - Draw a sprite of n-bytes high at (V[x], V[y])
     case 0xD000: {
       printf("Drawing:\n");
       Byte spriteRow;
@@ -252,11 +248,80 @@ void chipEmulateCycle(Chip8 *chip8) {
       }
       chip8->pc += 2;
       break;
-    // TODO:
-    case 0xF000:
-      printf("INSTRUCTION NOT IMPLEMENTED\n");
-      chip8->pc += 2;
+    case 0xE000:
+        switch (chip8->opcode & 0x00FF) {
+          // TODO:
+          // 0xEx9E - Skip next instruction if the key value of V[x] is pressed
+          case 0x009E:
+            printf("INSTRUCTION NOT IMPLEMENTED\n");
+            chip8->pc += 2;
+            break;
+          // TODO:
+          // 0xExA1 - Skip next instruction if the key value of V[x] is NOT pressed
+          case 0x00A1:
+            printf("INSTRUCTION NOT IMPLEMENTED\n");
+            chip8->pc += 2;
+            break;
+        }
       break;
+    case 0xF000:
+        switch (chip8->opcode & 0x00FF) {
+          // 0xFx07 - Set V[x] = delayTimer
+          case 0x0007:
+            chip8->V[x] = chip8->delayTimer;
+            chip8->pc += 2;
+            break;
+          // TODO:
+          // 0xFx0A - Wait for input and store the key value in V[x]
+          case 0x000A:
+            printf("INSTRUCTION NOT IMPLEMENTED\n");
+            chip8->pc += 2;
+            break;
+          // 0xFx15 - Set delayTimer = V[x]
+          case 0x0015:
+            chip8->delayTimer = chip8->V[x];
+            chip8->pc += 2;
+            break;
+          // 0xFx18 - Set soundTimer = V[x]
+          case 0x0018:
+            chip8->soundTimer = chip8->V[x];
+            chip8->pc += 2;
+            break;
+          // 0xFx1E - Set I = I + V[x]
+          case 0x001E:
+            chip8->I += chip8->V[x];
+            chip8->pc += 2;
+            break;
+          // 0xFx29 - Set I equal to the memory address of the font-sprite for the value in V[x]
+          case 0x0029:
+            chip8->I = chip8->V[x] * 5;
+            chip8->pc += 2;
+            break;
+          // 0xFx33 - Store BCD representation of V[x] at memory locations I, I + 1, I + 2
+          case 0x0033:
+            printf("V[%.1x] = %d\n", x, chip8->V[x]);
+            chip8->memory[chip8->I] = chip8->V[x] / 100;
+            chip8->memory[chip8->I + 1] = (chip8->V[x] % 100) / 10;
+            chip8->memory[chip8->I + 2] = chip8->V[x] % 10;
+            printf("memory[0x%.3x] = %d\n", chip8->I, chip8->memory[chip8->I]);
+            printf("memory[0x%.3x] = %d\n", chip8->I + 1, chip8->memory[chip8->I + 1]);
+            printf("memory[0x%.3x] = %d\n", chip8->I + 2, chip8->memory[chip8->I + 2]);
+            chip8->pc += 2;
+            break;
+          // 0xFx55 - Store values from registers V[0] to V[x] into memory[I] onwards
+          case 0x0055:
+            for (int i = 0; i <= x; i++)
+              chip8->memory[chip8->I + i] = chip8->V[i]; 
+            chip8->pc += 2;
+            break;
+          // 0xFx55 - Store values starting from memory[I] into registers V[0] to V[x]
+          case 0x0065:
+            for (int i = 0; i <= x; i++)
+              chip8->V[i] = chip8->memory[chip8->I + i]; 
+            chip8->pc += 2;
+            break;
+      break;
+      }
     }
   }
 }
