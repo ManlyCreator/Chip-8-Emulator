@@ -1,6 +1,7 @@
 // Standard Libraries
 #include <stdio.h>
 #include <stdlib.h>
+#include <pthread.h>
 
 // OpenGL Libraries
 #include <glad/glad.h>
@@ -13,7 +14,7 @@
 #define WIDTH 1920
 #define HEIGHT 960
 
-// TODO: Implement and debug 0xFx0A
+// TODO: Debug why key 0x0 is not being registered
 // TODO: Timers
 // TODO: Sound
 
@@ -95,22 +96,19 @@ int main(int argc, char **argv) {
 
   // Chip8
   chip8 = chipInitialize(window);
-  if (!chipLoadROM(&chip8, "../roms/spaceInvaders.ch8"))
-    return -1;
+  /*if (!chipLoadROM(&chip8, "../roms/spaceInvaders.ch8"))*/
+  /*  return -1;*/
   chip8.memory[0x200] = 0xF0;
   chip8.memory[0x201] = 0x0A;
-  chipEmulateCycle(&chip8);
+  /*chipEmulateCycle(&chip8);*/
 
   // Render Loop
   while (!glfwWindowShouldClose(window)) {
     currentTime = glfwGetTime();
     lastTime = glfwGetTime();
-    // Input
-    chipProcessInput(&chip8, window);
-    printf("Key Down? %d\n", chip8.keyPressed);
 
     // Emulation Cycle
-    /*chipEmulateCycle(&chip8);*/
+    chipEmulateCycle(&chip8);
 
     // Display Debugger
     /*for (int y = 0; y < DISPLAY_HEIGHT; y++) {*/

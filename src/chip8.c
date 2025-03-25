@@ -5,25 +5,45 @@
 #include <stdlib.h>
 #include <time.h>
 
+int virtualKeys[] = { 
+  GLFW_KEY_1, // 0
+  GLFW_KEY_2, // 1
+  GLFW_KEY_3, // 2
+  GLFW_KEY_4, // 3
+  GLFW_KEY_Q, // 4
+  GLFW_KEY_W, // 5
+  GLFW_KEY_E, // 6
+  GLFW_KEY_R, // 7
+  GLFW_KEY_A, // 8
+  GLFW_KEY_S, // 9
+  GLFW_KEY_D, // A
+  GLFW_KEY_F, // B
+  GLFW_KEY_Z, // C
+  GLFW_KEY_X, // D
+  GLFW_KEY_C, // E
+  GLFW_KEY_V, // F
+};
+
+Byte fontset[80] = { 
+  0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
+  0x20, 0x60, 0x20, 0x20, 0x70, // 1
+  0xF0, 0x10, 0xF0, 0x80, 0xF0, // 2
+  0xF0, 0x10, 0xF0, 0x10, 0xF0, // 3
+  0x90, 0x90, 0xF0, 0x10, 0x10, // 4
+  0xF0, 0x80, 0xF0, 0x10, 0xF0, // 5
+  0xF0, 0x80, 0xF0, 0x90, 0xF0, // 6
+  0xF0, 0x10, 0x20, 0x40, 0x40, // 7
+  0xF0, 0x90, 0xF0, 0x90, 0xF0, // 8
+  0xF0, 0x90, 0xF0, 0x10, 0xF0, // 9
+  0xF0, 0x90, 0xF0, 0x90, 0x90, // A
+  0xE0, 0x90, 0xE0, 0x90, 0xE0, // B
+  0xF0, 0x80, 0x80, 0x80, 0xF0, // C
+  0xE0, 0x90, 0x90, 0x90, 0xE0, // D
+  0xF0, 0x80, 0xF0, 0x80, 0xF0, // E
+  0xF0, 0x80, 0xF0, 0x80, 0x80  // F
+};
+
 Chip8 chipInitialize(GLFWwindow *window) {
-  Byte fontset[80] = { 
-    0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
-    0x20, 0x60, 0x20, 0x20, 0x70, // 1
-    0xF0, 0x10, 0xF0, 0x80, 0xF0, // 2
-    0xF0, 0x10, 0xF0, 0x10, 0xF0, // 3
-    0x90, 0x90, 0xF0, 0x10, 0x10, // 4
-    0xF0, 0x80, 0xF0, 0x10, 0xF0, // 5
-    0xF0, 0x80, 0xF0, 0x90, 0xF0, // 6
-    0xF0, 0x10, 0x20, 0x40, 0x40, // 7
-    0xF0, 0x90, 0xF0, 0x90, 0xF0, // 8
-    0xF0, 0x90, 0xF0, 0x10, 0xF0, // 9
-    0xF0, 0x90, 0xF0, 0x90, 0x90, // A
-    0xE0, 0x90, 0xE0, 0x90, 0xE0, // B
-    0xF0, 0x80, 0x80, 0x80, 0xF0, // C
-    0xE0, 0x90, 0x90, 0x90, 0xE0, // D
-    0xF0, 0x80, 0xF0, 0x80, 0xF0, // E
-    0xF0, 0x80, 0xF0, 0x80, 0x80  // F
-  };
   Chip8 chip8 = (Chip8){
     .I  = 0,
     .pc = 0x200,
@@ -76,6 +96,9 @@ void chipEmulateCycle(Chip8 *chip8) {
   // Decodes registers from the opcode
   x = (chip8->opcode & 0x0F00) >> 8; 
   y = (chip8->opcode & 0x00F0) >> 4;
+
+  // Process input before decoding
+  chipProcessInput(chip8, chip8->window);
 
   // Decode Instructions
   switch (chip8->opcode & 0xF000) {
@@ -273,12 +296,11 @@ void chipEmulateCycle(Chip8 *chip8) {
             chip8->V[x] = chip8->delayTimer;
             chip8->pc += 2;
             break;
-          // TODO:
           // 0xFx0A - Wait for input and store the key value in V[x]
           case 0x000A:
             printf("Waiting for input...\n");
-            while (!chip8->keyPressed)
-              chipProcessInput(chip8, chip8->window);
+            if (!chip8->keyPressed) 
+              break;
             chip8->V[x] = chip8->keyPressed;
             printf("Key 0x%.1x Pressed\n", chip8->V[x]);
             chip8->pc += 2;
@@ -333,44 +355,8 @@ void chipEmulateCycle(Chip8 *chip8) {
 }
 
 void chipProcessInput(Chip8 *chip8, GLFWwindow *window) {
-  int virtualKeys[] = { 
-    // 0
-    GLFW_KEY_1,
-    // 1
-    GLFW_KEY_2,
-    // 2
-    GLFW_KEY_3,
-    // 3
-    GLFW_KEY_4,
-    // 4
-    GLFW_KEY_Q,
-    // 5
-    GLFW_KEY_W,
-    // 6
-    GLFW_KEY_E,
-    // 7
-    GLFW_KEY_R,
-    // 8
-    GLFW_KEY_A,
-    // 9
-    GLFW_KEY_S,
-    // A
-    GLFW_KEY_D,
-    // B
-    GLFW_KEY_F,
-    // C
-    GLFW_KEY_Z,
-    // D
-    GLFW_KEY_X,
-    // E
-    GLFW_KEY_C,
-    // F
-    GLFW_KEY_V,
-  };
-
   chip8->keyPressed = 0;
   for (int i = 0x0; i <= 0xF; i++) {
-    printf("0x%.1X\n", i);
     if (glfwGetKey(window, virtualKeys[i]) == GLFW_PRESS) {
       chip8->key[i] = 1;
       chip8->keyPressed = i;
