@@ -14,11 +14,11 @@
 #define WIDTH 1920
 #define HEIGHT 960
 
-// TODO: Debug why key 0x0 is not being registered
-// TODO: Timers
+// TODO: Keep track of time in Chip8 source
+// TODO: Decrement timers
 // TODO: Sound
 
-int lastTime, currentTime, elapsedTime = 0;
+float lastTime, currentTime, elapsedTime, deltaTime = 0;
 
 void framebufferSizeCallback(GLFWwindow *window, int width, int height);
 
@@ -96,19 +96,24 @@ int main(int argc, char **argv) {
 
   // Chip8
   chip8 = chipInitialize(window);
-  /*if (!chipLoadROM(&chip8, "../roms/spaceInvaders.ch8"))*/
-  /*  return -1;*/
-  chip8.memory[0x200] = 0xF0;
-  chip8.memory[0x201] = 0x0A;
+  if (!chipLoadROM(&chip8, "../roms/spaceInvaders.ch8"))
+    return -1;
+  /*chip8.memory[0x200] = 0xF0;*/
+  /*chip8.memory[0x201] = 0x0A;*/
   /*chipEmulateCycle(&chip8);*/
 
   // Render Loop
   while (!glfwWindowShouldClose(window)) {
     currentTime = glfwGetTime();
+    deltaTime = currentTime - lastTime;
+    elapsedTime += deltaTime;
     lastTime = glfwGetTime();
 
     // Emulation Cycle
-    chipEmulateCycle(&chip8);
+    if (elapsedTime < DISPLAY_FREQUENCY) continue;
+    chipTick(&chip8, 16);
+    elapsedTime = 0;
+
 
     // Display Debugger
     /*for (int y = 0; y < DISPLAY_HEIGHT; y++) {*/

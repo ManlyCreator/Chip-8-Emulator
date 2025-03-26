@@ -3,8 +3,10 @@
 #define MEMORY 4096
 #define DISPLAY_WIDTH 64
 #define DISPLAY_HEIGHT 32
+#define DISPLAY_FREQUENCY (float)1 / 60
 
 #define Byte unsigned char
+#define SignedByte char
 #define Word unsigned short
 
 typedef struct {
@@ -22,7 +24,7 @@ typedef struct {
   Word pc;
   Word stack[16];
   Byte sp;
-  Byte keyPressed;
+  SignedByte keyPressed;
 
   // Timers
   Byte delayTimer;
@@ -33,5 +35,5 @@ typedef struct {
 
 Chip8 chipInitialize(GLFWwindow *window);
 int chipLoadROM(Chip8 *chip8, const char *romPath);
-void chipEmulateCycle(Chip8 *chip8);
+void chipTick(Chip8 *chip8, int steps);
 void chipProcessInput(Chip8 *chip8, GLFWwindow *window);

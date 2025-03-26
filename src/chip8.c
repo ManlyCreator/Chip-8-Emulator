@@ -5,6 +5,8 @@
 #include <stdlib.h>
 #include <time.h>
 
+#define GET_MACRO_NAME(name) #name
+
 int virtualKeys[] = { 
   GLFW_KEY_1, // 0
   GLFW_KEY_2, // 1
@@ -42,6 +44,8 @@ Byte fontset[80] = {
   0xF0, 0x80, 0xF0, 0x80, 0xF0, // E
   0xF0, 0x80, 0xF0, 0x80, 0x80  // F
 };
+
+void emulateCycle(Chip8 *chip8);
 
 Chip8 chipInitialize(GLFWwindow *window) {
   Chip8 chip8 = (Chip8){
@@ -86,12 +90,18 @@ int chipLoadROM(Chip8 *chip8, const char *romName) {
   return 1; 
 }
 
-void chipEmulateCycle(Chip8 *chip8) {
+void chipTick(Chip8 *chip8, int steps) {
+  for (int i = 0; i < steps; i++) {
+    emulateCycle(chip8);
+  }
+}
+
+void emulateCycle(Chip8 *chip8) {
   Byte x, y;
 
   chip8->opcode = (chip8->memory[chip8->pc] << 8) | chip8->memory[chip8->pc + 1];
-  printf("Reading memory[0x%.3x] = 0x%.2x and memory[0x%.3x] = 0x%.2x\n", chip8->pc, chip8->memory[chip8->pc], chip8->pc + 1, chip8->memory[chip8->pc + 1]);
-  printf("Opcode: 0x%.4x\n", chip8->opcode);
+  /*printf("Reading memory[0x%.3x] = 0x%.2x and memory[0x%.3x] = 0x%.2x\n", chip8->pc, chip8->memory[chip8->pc], chip8->pc + 1, chip8->memory[chip8->pc + 1]);*/
+  /*printf("Opcode: 0x%.4x\n", chip8->opcode);*/
 
   // Decodes registers from the opcode
   x = (chip8->opcode & 0x0F00) >> 8; 
@@ -106,7 +116,7 @@ void chipEmulateCycle(Chip8 *chip8) {
       switch (chip8->opcode) {
         // 0x00E0 - Clear Screen
         case 0x00E0:
-          printf("Clearing Display\n");
+          /*printf("Clearing Display\n");*/
           free(chip8->display);
           chip8->display = calloc(DISPLAY_WIDTH * DISPLAY_HEIGHT, sizeof(Byte));
           chip8->pc += 2;
@@ -114,20 +124,20 @@ void chipEmulateCycle(Chip8 *chip8) {
         // 0x00EE - Return
         case 0x00EE:
           chip8->pc = chip8->stack[--chip8->sp] + 2;
-          printf("Returning to 0x%.3x\n", chip8->pc);
+          /*printf("Returning to 0x%.3x\n", chip8->pc);*/
           break;
       }
       break;
     // 0x1nnn - Jump to address nnn
     case 0x1000:
       chip8->pc = chip8->opcode & 0x0FFF;
-      printf("Setting PC to: %d\n", chip8->pc);
+      /*printf("Setting PC to: %d\n", chip8->pc);*/
       break;
     // 0x2nnn - Call function at nnn
     case 0x2000:
       chip8->stack[chip8->sp++] = chip8->pc;
       chip8->pc = chip8->opcode & 0x0FFF;
-      printf("Calling function at 0x%.3x\n", chip8->pc);
+      /*printf("Calling function at 0x%.3x\n", chip8->pc);*/
       break;
     // 0x3xbb - Skip next instruction if V[x] == bb
     case 0x3000:
@@ -150,12 +160,12 @@ void chipEmulateCycle(Chip8 *chip8) {
     // 0x6xbb - Load bb into V[x]
     case 0x6000:
       chip8->V[x] = chip8->opcode & 0x00FF;
-      printf("Loaded %d into V[0x%x]\n", chip8->V[x], x);
+      /*printf("Loaded %d into V[0x%x]\n", chip8->V[x], x);*/
       chip8->pc += 2;
       break;
     // 0x7xbb - Increment V[x] by bb
     case 0x7000:
-      printf("Incrementing V[%d] by %d\n", x, chip8->opcode & 0x00FF);
+      /*printf("Incrementing V[%d] by %d\n", x, chip8->opcode & 0x00FF);*/
       chip8->V[x] += chip8->opcode & 0x00FF;
       chip8->pc += 2;
       break;
@@ -237,25 +247,25 @@ void chipEmulateCycle(Chip8 *chip8) {
     // 0xAnnn - Load nnn into I
     case 0xA000:
       chip8->I = chip8->opcode & 0x0FFF;
-      printf("Loaded %d into I\n", chip8->I);
-      printf("memory[I] = 0x%.2x\n", chip8->memory[chip8->I]);
+      /*printf("Loaded %d into I\n", chip8->I);*/
+      /*printf("memory[I] = 0x%.2x\n", chip8->memory[chip8->I]);*/
       chip8->pc += 2;
       break;
     // 0xBnnn - Jump to address nnn + V[0]
     case 0xB000:
       chip8->pc = chip8->V[0] + chip8->opcode & 0x0FFF;
-      printf("Jumped to address 0x%.3x\n", chip8->pc);
+      /*printf("Jumped to address 0x%.3x\n", chip8->pc);*/
       break;
     // 0xCxbb - Set V[x] = rand(0, 255) AND bb
     case 0xC000:
       srand(time(NULL));
       chip8->V[x] = (rand() % 256) & (chip8->opcode & 0x00FF);
-      printf("Generated random number in V[0x%x]: 0x%.2x\n", x, chip8->V[x]);
+      /*printf("Generated random number in V[0x%x]: 0x%.2x\n", x, chip8->V[x]);*/
       chip8->pc += 2;
       break;
     // 0xDxyn - Draw a sprite of n-bytes high at (V[x], V[y])
     case 0xD000: {
-      printf("Drawing:\n");
+      /*printf("Drawing:\n");*/
       Byte spriteRow;
       Byte height = chip8->opcode & 0x000F;
       chip8->V[0xF] = 0;
@@ -264,12 +274,12 @@ void chipEmulateCycle(Chip8 *chip8) {
         for (int j = 0; j < 8; j++) {
           unsigned index = chip8->V[x] + j + ((DISPLAY_HEIGHT - 1 - (chip8->V[y] + i)) * DISPLAY_WIDTH);
           Byte pixel = (spriteRow & (0x80 >> j)) > 0 ? 1 : 0;
-          printf("%d", pixel);
+          /*printf("%d", pixel);*/
           if (chip8->display[index] == 1)
             chip8->V[0xF] = 1;
           chip8->display[index] ^= pixel;
         }
-        printf("\n");
+        /*printf("\n");*/
       }
       chip8->pc += 2;
       break;
@@ -298,11 +308,11 @@ void chipEmulateCycle(Chip8 *chip8) {
             break;
           // 0xFx0A - Wait for input and store the key value in V[x]
           case 0x000A:
-            printf("Waiting for input...\n");
-            if (!chip8->keyPressed) 
+            /*printf("Waiting for input...\n");*/
+            if (chip8->keyPressed < 0) 
               break;
             chip8->V[x] = chip8->keyPressed;
-            printf("Key 0x%.1x Pressed\n", chip8->V[x]);
+            /*printf("Key 0x%.1x Pressed\n", chip8->V[x]);*/
             chip8->pc += 2;
             break;
           // 0xFx15 - Set delayTimer = V[x]
@@ -327,13 +337,13 @@ void chipEmulateCycle(Chip8 *chip8) {
             break;
           // 0xFx33 - Store BCD representation of V[x] at memory locations I, I + 1, I + 2
           case 0x0033:
-            printf("V[%.1x] = %d\n", x, chip8->V[x]);
+            /*printf("V[%.1x] = %d\n", x, chip8->V[x]);*/
             chip8->memory[chip8->I] = chip8->V[x] / 100;
             chip8->memory[chip8->I + 1] = (chip8->V[x] % 100) / 10;
             chip8->memory[chip8->I + 2] = chip8->V[x] % 10;
-            printf("memory[0x%.3x] = %d\n", chip8->I, chip8->memory[chip8->I]);
-            printf("memory[0x%.3x] = %d\n", chip8->I + 1, chip8->memory[chip8->I + 1]);
-            printf("memory[0x%.3x] = %d\n", chip8->I + 2, chip8->memory[chip8->I + 2]);
+            /*printf("memory[0x%.3x] = %d\n", chip8->I, chip8->memory[chip8->I]);*/
+            /*printf("memory[0x%.3x] = %d\n", chip8->I + 1, chip8->memory[chip8->I + 1]);*/
+            /*printf("memory[0x%.3x] = %d\n", chip8->I + 2, chip8->memory[chip8->I + 2]);*/
             chip8->pc += 2;
             break;
           // 0xFx55 - Store values from registers V[0] to V[x] into memory[I] onwards
@@ -355,8 +365,8 @@ void chipEmulateCycle(Chip8 *chip8) {
 }
 
 void chipProcessInput(Chip8 *chip8, GLFWwindow *window) {
-  chip8->keyPressed = 0;
-  for (int i = 0x0; i <= 0xF; i++) {
+  chip8->keyPressed = -1;
+  for (int i = 0; i < 16; i++) {
     if (glfwGetKey(window, virtualKeys[i]) == GLFW_PRESS) {
       chip8->key[i] = 1;
       chip8->keyPressed = i;
