@@ -1,11 +1,7 @@
 #include "chip8.h"
-#include <GLFW/glfw3.h>
-#include <cglm/util.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-
-#define GET_MACRO_NAME(name) #name
 
 int virtualKeys[] = { 
   GLFW_KEY_1, // 0
@@ -47,7 +43,7 @@ Byte fontset[80] = {
 
 void emulateCycle(Chip8 *chip8);
 
-Chip8 chipInitialize(GLFWwindow *window) {
+Chip8 chipInitialize() {
   Chip8 chip8 = (Chip8){
     .I  = 0,
     .pc = 0x200,
@@ -61,7 +57,7 @@ Chip8 chipInitialize(GLFWwindow *window) {
     chip8.memory[i] = fontset[i];
   }
   chip8.display = calloc(DISPLAY_WIDTH * DISPLAY_HEIGHT, sizeof(Byte));
-  chip8.window = window;
+  chip8.screen = screenInit("../vertexShader.glsl", "../fragmentShader.glsl", DISPLAY_WIDTH, DISPLAY_HEIGHT, chip8.display);
   return chip8;
 }
 
@@ -90,6 +86,47 @@ int chipLoadROM(Chip8 *chip8, const char *romName) {
   return 1; 
 }
 
+void chipStartMainLoop(Chip8 *chip8, unsigned instructionFrequency) {
+  float lastTime, currentTime, elapsedTime, deltaTime = 0;
+  while (!glfwWindowShouldClose(chip8->screen.window)) {
+    currentTime = glfwGetTime();
+    deltaTime = currentTime - lastTime;
+    elapsedTime += deltaTime;
+    lastTime = glfwGetTime();
+
+    // Emulation Cycle
+    if (elapsedTime < DISPLAY_FREQUENCY) continue;
+    chipTick(chip8, instructionFrequency);
+    elapsedTime = 0;
+    chip8->soundTimer = chip8->soundTimer >= 0 ? chip8->soundTimer - 1 : 0;
+    chip8->delayTimer = chip8->delayTimer >= 0 ? chip8->delayTimer - 1 : 0;
+
+    // Display Debugger
+    /*for (int y = 0; y < DISPLAY_HEIGHT; y++) {*/
+    /*  for (int x = 0; x < DISPLAY_WIDTH; x++) {*/
+    /*    printf("%d", chip8.display[y * 64 + x]);*/
+    /*  }*/
+    /*  printf("\n");*/
+    /*}*/
+    
+    // Clear Commands
+    glClear(GL_COLOR_BUFFER_BIT);
+    glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
+
+    // Draw Commands
+    glBindVertexArray(chip8->screen.VAO);
+    shaderUse(chip8->screen.shader);
+    shaderSetInt(chip8->screen.shader, "texSample", 0);
+    glBindTexture(GL_TEXTURE_2D, chip8->screen.texture);
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, DISPLAY_WIDTH, DISPLAY_HEIGHT, GL_RED, GL_UNSIGNED_BYTE, chip8->display);
+    glDrawArrays(GL_TRIANGLES, 0, 6);
+
+    // Poll Events & Swap Buffers
+    glfwPollEvents();
+    glfwSwapBuffers(chip8->screen.window);
+  }
+}
+
 void chipTick(Chip8 *chip8, int steps) {
   for (int i = 0; i < steps; i++) {
     emulateCycle(chip8);
@@ -108,7 +145,7 @@ void emulateCycle(Chip8 *chip8) {
   y = (chip8->opcode & 0x00F0) >> 4;
 
   // Process input before decoding
-  chipProcessInput(chip8, chip8->window);
+  chipProcessInput(chip8);
 
   // Decode Instructions
   switch (chip8->opcode & 0xF000) {
@@ -364,10 +401,10 @@ void emulateCycle(Chip8 *chip8) {
   }
 }
 
-void chipProcessInput(Chip8 *chip8, GLFWwindow *window) {
+void chipProcessInput(Chip8 *chip8) {
   chip8->keyPressed = -1;
   for (int i = 0; i < 16; i++) {
-    if (glfwGetKey(window, virtualKeys[i]) == GLFW_PRESS) {
+    if (glfwGetKey(chip8->screen.window, virtualKeys[i]) == GLFW_PRESS) {
       chip8->key[i] = 1;
       chip8->keyPressed = i;
     } else {

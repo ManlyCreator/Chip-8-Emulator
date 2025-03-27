@@ -1,4 +1,7 @@
-#include <GLFW/glfw3.h>
+#ifndef CHIP_8_H
+#define CHIP_8_H
+
+#include "screen.h"
 
 #define MEMORY 4096
 #define DISPLAY_WIDTH 64
@@ -18,7 +21,7 @@ typedef struct {
 
   // Display
   Byte *display;
-  GLFWwindow *window;
+  Screen screen;
 
   // State
   Word pc;
@@ -33,7 +36,10 @@ typedef struct {
   Word opcode;
 } Chip8;
 
-Chip8 chipInitialize(GLFWwindow *window);
+Chip8 chipInitialize();
 int chipLoadROM(Chip8 *chip8, const char *romPath);
+void chipStartMainLoop(Chip8 *chip8, unsigned instructionFrequency);
 void chipTick(Chip8 *chip8, int steps);
-void chipProcessInput(Chip8 *chip8, GLFWwindow *window);
+void chipProcessInput(Chip8 *chip8);
+
+#endif

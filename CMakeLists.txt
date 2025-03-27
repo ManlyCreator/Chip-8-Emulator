@@ -11,5 +11,7 @@ include_directories(include/)
 
 add_library(Chip8 src/chip8.c)
 add_library(Shader src/shader.c)
+add_library(Screen src/screen.c)
 
-target_link_libraries(${PROJECT_NAME} glad glfw3 GL m Chip8 Shader)
+target_link_libraries(Screen glad glfw3 GL m)
+target_link_libraries(${PROJECT_NAME} Chip8 Shader Screen)
