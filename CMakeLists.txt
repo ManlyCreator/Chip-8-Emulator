@@ -13,5 +13,7 @@ add_library(Chip8 src/chip8.c)
 add_library(Shader src/shader.c)
 add_library(Screen src/screen.c)
 
+find_package(OpenAL REQUIRED)
+
 target_link_libraries(Screen glad glfw3 GL m)
-target_link_libraries(${PROJECT_NAME} Chip8 Shader Screen)
+target_link_libraries(${PROJECT_NAME} OpenAL::OpenAL Chip8 Shader Screen)
