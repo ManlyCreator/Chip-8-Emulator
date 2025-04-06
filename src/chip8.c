@@ -1,4 +1,5 @@
 #include "chip8.h"
+#include "buzzer.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -58,6 +59,7 @@ Chip8 chipInitialize() {
   }
   chip8.display = calloc(DISPLAY_WIDTH * DISPLAY_HEIGHT, sizeof(Byte));
   chip8.screen = screenInit("../vertexShader.glsl", "../fragmentShader.glsl", DISPLAY_WIDTH, DISPLAY_HEIGHT, chip8.display);
+  chip8.buzzer = buzzerInit();
   return chip8;
 }
 
@@ -88,6 +90,7 @@ int chipLoadROM(Chip8 *chip8, const char *romName) {
 
 void chipStartMainLoop(Chip8 *chip8, unsigned instructionFrequency) {
   float lastTime, currentTime, elapsedTime, deltaTime = 0;
+  Byte soundPlaying = 0;
   while (!glfwWindowShouldClose(chip8->screen.window)) {
     currentTime = glfwGetTime();
     deltaTime = currentTime - lastTime;
@@ -95,11 +98,16 @@ void chipStartMainLoop(Chip8 *chip8, unsigned instructionFrequency) {
     lastTime = glfwGetTime();
 
     // Emulation Cycle
+    /*if (chip8->soundTimer > 0)*/
+    /*  buzzerPlay(&chip8->buzzer);*/
+    /*else*/
+    /*  buzzerStop(&chip8->buzzer);*/
+    chip8->soundTimer = chip8->soundTimer >= 0 ? chip8->soundTimer - 1 : 0;
+    chip8->delayTimer = chip8->delayTimer >= 0 ? chip8->delayTimer - 1 : 0;
     if (elapsedTime < DISPLAY_FREQUENCY) continue;
     chipTick(chip8, instructionFrequency);
     elapsedTime = 0;
-    chip8->soundTimer = chip8->soundTimer >= 0 ? chip8->soundTimer - 1 : 0;
-    chip8->delayTimer = chip8->delayTimer >= 0 ? chip8->delayTimer - 1 : 0;
+    printf("Sound Timer: %d\n", chip8->soundTimer);
 
     // Display Debugger
     /*for (int y = 0; y < DISPLAY_HEIGHT; y++) {*/

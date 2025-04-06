@@ -2,6 +2,7 @@
 #define CHIP_8_H
 
 #include "screen.h"
+#include "buzzer.h"
 
 #define MEMORY 4096
 #define DISPLAY_WIDTH 64
@@ -22,6 +23,9 @@ typedef struct {
   // Display
   Byte *display;
   Screen screen;
+
+  // Sound
+  Buzzer buzzer;
 
   // State
   Word pc;
