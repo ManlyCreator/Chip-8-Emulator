@@ -7,7 +7,7 @@
 #define MEMORY 4096
 #define DISPLAY_WIDTH 64
 #define DISPLAY_HEIGHT 32
-#define DISPLAY_FREQUENCY (float)1 / 60
+#define DISPLAY_FREQUENCY (float)1 / 120
 
 #define Byte unsigned char
 #define SignedByte char
@@ -26,6 +26,7 @@ typedef struct {
 
   // Sound
   Buzzer buzzer;
+  Byte soundPlaying;
 
   // State
   Word pc;

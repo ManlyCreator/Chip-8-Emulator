@@ -49,6 +49,7 @@ Chip8 chipInitialize() {
     .I  = 0,
     .pc = 0x200,
     .sp = 0,
+    .soundPlaying = 0,
     .delayTimer = 0,
     .soundTimer = 0,
     .opcode = 0
@@ -98,16 +99,19 @@ void chipStartMainLoop(Chip8 *chip8, unsigned instructionFrequency) {
     lastTime = glfwGetTime();
 
     // Emulation Cycle
-    /*if (chip8->soundTimer > 0)*/
-    /*  buzzerPlay(&chip8->buzzer);*/
-    /*else*/
-    /*  buzzerStop(&chip8->buzzer);*/
-    chip8->soundTimer = chip8->soundTimer >= 0 ? chip8->soundTimer - 1 : 0;
-    chip8->delayTimer = chip8->delayTimer >= 0 ? chip8->delayTimer - 1 : 0;
+    if (chip8->soundTimer > 0 && !chip8->soundPlaying) {
+      buzzerPlay(&chip8->buzzer);
+      chip8->soundPlaying = 1;
+    }
+    else {
+      buzzerStop(&chip8->buzzer);
+      chip8->soundPlaying = 0;
+    }
     if (elapsedTime < DISPLAY_FREQUENCY) continue;
     chipTick(chip8, instructionFrequency);
+    chip8->soundTimer = chip8->soundTimer > 0 ? chip8->soundTimer - 1 : 0;
+    chip8->delayTimer = chip8->delayTimer > 0 ? chip8->delayTimer - 1 : 0;
     elapsedTime = 0;
-    printf("Sound Timer: %d\n", chip8->soundTimer);
 
     // Display Debugger
     /*for (int y = 0; y < DISPLAY_HEIGHT; y++) {*/
@@ -367,6 +371,7 @@ void emulateCycle(Chip8 *chip8) {
             break;
           // 0xFx18 - Set soundTimer = V[x]
           case 0x0018:
+            /*printf("Setting Sound Timer\n");*/
             chip8->soundTimer = chip8->V[x];
             chip8->pc += 2;
             break;

@@ -5,9 +5,7 @@
 #include "buzzer.h"
 #include "chip8.h"
 
-// TODO: Debug why sound timer is always nonzero in Chip8
-// TODO: Use a soundPlaying flag to ensure that the sound is not constantly re-played or stopped
-// TODO: Implement Buzzer in Chip8
+// TODO: Debug sprites reappearing in Space Invaders (timers?)
 // TODO: Debug seg faults
 // TODO: Load ROMs from CLI
 
