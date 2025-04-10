@@ -32,6 +32,7 @@ typedef struct {
   Word pc;
   Word stack[16];
   Byte sp;
+  Byte debugFlag;
   SignedByte keyPressed;
 
   // Timers

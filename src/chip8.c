@@ -1,5 +1,6 @@
 #include "chip8.h"
 #include "buzzer.h"
+#include "opcodes.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
