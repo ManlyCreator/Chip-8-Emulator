@@ -98,7 +98,7 @@ void chipStartMainLoop(Chip8 *chip8, unsigned instructionFrequency) {
     elapsedTime += deltaTime;
     lastTime = glfwGetTime();
 
-    // Emulation Cycle
+    // Buzzer Control
     if (chip8->soundTimer > 0 && !chip8->soundPlaying) {
       buzzerPlay(&chip8->buzzer);
       chip8->soundPlaying = 1;
@@ -107,6 +107,8 @@ void chipStartMainLoop(Chip8 *chip8, unsigned instructionFrequency) {
       buzzerStop(&chip8->buzzer);
       chip8->soundPlaying = 0;
     }
+    
+    // Display Refresh
     if (elapsedTime < DISPLAY_FREQUENCY) continue;
     chipTick(chip8, instructionFrequency);
     chip8->soundTimer = chip8->soundTimer > 0 ? chip8->soundTimer - 1 : 0;
@@ -116,7 +118,7 @@ void chipStartMainLoop(Chip8 *chip8, unsigned instructionFrequency) {
     // Display Debugger
     /*for (int y = 0; y < DISPLAY_HEIGHT; y++) {*/
     /*  for (int x = 0; x < DISPLAY_WIDTH; x++) {*/
-    /*    printf("%d", chip8.display[y * 64 + x]);*/
+    /*    printf("%d", chip8->display[y * 64 + x]);*/
     /*  }*/
     /*  printf("\n");*/
     /*}*/
